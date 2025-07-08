@@ -1,83 +1,90 @@
 @Library('Shared') _
 pipeline {
     agent any
-    
-    environment{
+
+    environment {
         SONAR_HOME = tool "Sonar"
     }
-    
+
     parameters {
         string(name: 'DOCKER_TAG', defaultValue: '', description: 'Setting docker image for latest push')
     }
-    
+
     stages {
-        
-        stage("Workspace cleanup"){
-            steps{
-                script{
+
+        stage("Workspace cleanup") {
+            steps {
+                script {
                     cleanWs()
                 }
             }
         }
-        
-        stage('Git: Code Checkout') {
+
+        stage("Git: Code Checkout") {
             steps {
-                script{
-                    code_checkout("https://github.com/Ayush-Singh986/Springboot-BankApp.git","DevOps")
+                script {
+                    code_checkout("https://github.com/Ayush-Singh986/Springboot-BankApp.git", "DevOps")
                 }
             }
         }
-        
-        stage("Trivy: Filesystem scan"){
-            steps{
-                script{
+
+        stage("Trivy: Filesystem scan") {
+            steps {
+                script {
                     trivy_scan()
                 }
             }
         }
 
-        stage("OWASP: Dependency check"){
-            steps{
-                script{
+        stage("OWASP: Dependency check") {
+            steps {
+                script {
                     owasp_dependency()
                 }
             }
         }
-        
-        stage("SonarQube: Code Analysis"){
-            steps{
-                script{
-                    sonarqube_analysis("Sonar","bankapp","bankapp")
+
+        stage("Build: Java Compile") {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+
+        stage("SonarQube: Code Analysis") {
+            steps {
+                script {
+                    sonarqube_analysis("Sonar", "bankapp", "bankapp")
                 }
             }
         }
-        
-        stage("SonarQube: Code Quality Gates"){
-            steps{
-                script{
+
+        stage("SonarQube: Code Quality Gates") {
+            steps {
+                script {
                     sonarqube_code_quality()
                 }
             }
         }
 
-        stage("Docker: Build Images"){
-            steps{
-                script{
-                    docker_build("bankapp","${params.DOCKER_TAG}","ayush244")
+        stage("Docker: Build Images") {
+            steps {
+                script {
+                    docker_build("bankapp", "${params.DOCKER_TAG}", "ayush244")
                 }
             }
         }
-        
-        stage("Docker: Push to DockerHub"){
-            steps{
-                script{
-                    docker_push("bankapp","${params.DOCKER_TAG}","ayush244")
+
+        stage("Docker: Push to DockerHub") {
+            steps {
+                script {
+                    docker_push("bankapp", "${params.DOCKER_TAG}", "ayush244")
                 }
             }
         }
     }
-    post{
-        success{
+
+    post {
+        success {
             archiveArtifacts artifacts: '*.xml', followSymlinks: false
             build job: "BankApp-CD", parameters: [
                 string(name: 'DOCKER_TAG', value: "${params.DOCKER_TAG}")
