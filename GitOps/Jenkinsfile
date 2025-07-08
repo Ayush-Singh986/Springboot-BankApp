@@ -18,7 +18,7 @@ pipeline {
         stage('Git: Code Checkout') {
             steps {
                 script{
-                    code_checkout("https://github.com/LondheShubham153/Springboot-BankApp.git","DevOps")
+                    code_checkout("https://github.com/Ayush-Singh986/Springboot-BankApp.git","DevOps")
                 }
             }
         }
@@ -59,7 +59,7 @@ pipeline {
                         git commit -m "Updated K8s Deployment Docker Image Version"
                         
                         echo "Pushing changes to github: "
-                        git push https://github.com/LondheShubham153/Springboot-BankApp.git DevOps
+                        git push https://github.com/Ayush-Singh986/Springboot-BankApp.git DevOps
                     '''
                     }
                 }
