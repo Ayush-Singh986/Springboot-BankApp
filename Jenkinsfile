@@ -3,24 +3,21 @@ pipeline {
     agent any
 
     environment {
-        SONAR_HOME = tool "Sonar"
+        SONAR_HOME = tool "Sonar" // Jenkins tool config name
     }
 
     parameters {
-        string(name: 'DOCKER_TAG', defaultValue: '', description: 'Setting docker image for latest push')
+        string(name: 'DOCKER_TAG', defaultValue: '', description: 'Docker image tag for the build')
     }
 
     stages {
-
         stage("Workspace cleanup") {
             steps {
-                script {
-                    cleanWs()
-                }
+                cleanWs()
             }
         }
 
-        stage('Git: Code Checkout') {
+        stage("Git: Code Checkout") {
             steps {
                 script {
                     code_checkout("https://github.com/Ayush-Singh986/Springboot-BankApp.git", "DevOps")
@@ -28,7 +25,7 @@ pipeline {
             }
         }
 
-        stage("Build: Java Compile") {
+        stage("Build: Compile Java") {
             steps {
                 sh 'mvn clean compile'
             }
@@ -52,14 +49,14 @@ pipeline {
 
         stage("SonarQube: Code Analysis") {
             steps {
-                script {
-                    // Updated sonar-scanner call with sonar.java.binaries
+                withCredentials([string(credentialsId: 'sonar-token-id', variable: 'SONAR_TOKEN')]) {
                     sh """
                         ${SONAR_HOME}/bin/sonar-scanner \
                         -Dsonar.projectName=bankapp \
                         -Dsonar.projectKey=bankapp \
                         -Dsonar.sources=. \
-                        -Dsonar.java.binaries=target/classes
+                        -Dsonar.java.binaries=target/classes \
+                        -Dsonar.login=$SONAR_TOKEN
                     """
                 }
             }
@@ -73,7 +70,7 @@ pipeline {
             }
         }
 
-        stage("Docker: Build Images") {
+        stage("Docker: Build Image") {
             steps {
                 script {
                     docker_build("bankapp", "${params.DOCKER_TAG}", "ayush244")
