@@ -438,6 +438,12 @@ kubectl get secret --namespace prometheus stable-grafana -o jsonpath="{.data.adm
 #
 ## Clean Up
 - <b id="Clean">Delete eks cluster</b>
+
+Unable to Access ArgoCD Web UI - Connection Issue
+//
+kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0
+sudo firewall-cmd --zone=public --permanent --add-port=8080/tcp
+sudo firewall-cmd --reload
 ```bash
 eksctl delete cluster --name=bankapp --region=us-west-1
 ```
