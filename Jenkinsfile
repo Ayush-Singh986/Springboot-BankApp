@@ -20,11 +20,17 @@ pipeline {
             }
         }
 
-        stage("Git: Code Checkout") {
+        stage('Git: Code Checkout') {
             steps {
                 script {
                     code_checkout("https://github.com/Ayush-Singh986/Springboot-BankApp.git", "DevOps")
                 }
+            }
+        }
+
+        stage("Build: Java Compile") {
+            steps {
+                sh 'mvn clean compile'
             }
         }
 
@@ -44,16 +50,17 @@ pipeline {
             }
         }
 
-        stage("Build: Java Compile") {
-            steps {
-                sh 'mvn clean compile'
-            }
-        }
-
         stage("SonarQube: Code Analysis") {
             steps {
                 script {
-                    sonarqube_analysis("Sonar", "bankapp", "bankapp")
+                    // Updated sonar-scanner call with sonar.java.binaries
+                    sh """
+                        ${SONAR_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectName=bankapp \
+                        -Dsonar.projectKey=bankapp \
+                        -Dsonar.sources=. \
+                        -Dsonar.java.binaries=target/classes
+                    """
                 }
             }
         }
